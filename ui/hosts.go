@@ -19,6 +19,7 @@ import (
 )
 
 type Host struct {
+	Aliases      []string
 	Name         string
 	User         string
 	HostName     string
@@ -66,8 +67,6 @@ func connect(name string, configPath string) {
 	if err != nil {
 		os.Exit(cmd.ProcessState.ExitCode())
 	}
-
-	os.Exit(0)
 }
 
 func asSha256(o interface{}) string {
@@ -100,7 +99,13 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 
 	table.SetBackgroundColor(tcell.ColorReset)
 
+	isSuspended := false
 	table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if isSuspended {
+			isSuspended = false
+			return event
+		}
+
 		switch event.Key() {
 		case tcell.KeyEnter:
 			row, _ := table.GetSelection()
@@ -108,8 +113,10 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 
 			// In case no host is selected
 			if len(hostname) > 0 {
-				app.Stop()
-				connect(hostname, sshConfigPath)
+				app.Suspend(func() {
+					isSuspended = true
+					connect(hostname, sshConfigPath)
+				})
 			}
 		}
 
@@ -117,7 +124,31 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 	})
 
 	for _, host := range hosts {
-		name := strings.Join(host.Host, " ")
+		aliases := make([]string, 0)
+
+		isInString := false
+
+		for _, alias := range host.Host {
+			if isInString {
+				aliases[len(aliases)-1] += " " + alias
+
+				if strings.HasSuffix(alias, "\"") {
+					isInString = false
+				}
+
+				continue
+			}
+
+			if strings.HasPrefix(alias, "\"") {
+				isInString = true
+			}
+
+			aliases = append(aliases, alias)
+
+		}
+
+		// Get first entry, considere it as the full hostname (not an alias)
+		name := aliases[0]
 		if name == "" {
 			continue
 		}
@@ -135,6 +166,7 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 		}
 
 		item := Host{
+			Aliases:      aliases,
 			Name:         name,
 			User:         host.User,
 			HostName:     host.HostName,
@@ -183,7 +215,11 @@ func (t *HostsTable) Filter(filter string) *HostsTable {
 func (t *HostsTable) Generate() *HostsTable {
 	t.Clear()
 
-	headers := []string{"Hostname", "User", "Target", "Port"}
+	headers := []string{"Hostname", "Aliases", "User", "Target", "Port"}
+
+	if t.displayFullProxy {
+		headers = append(headers, "ProxyCommand")
+	}
 
 	for col, header := range headers {
 		cell := tview.NewTableCell(padding(header)).
@@ -218,11 +254,16 @@ func (t *HostsTable) Generate() *HostsTable {
 			}
 		}
 
-		if !strings.Contains(strings.ToLower(host.Name), t.filter) && !strings.Contains(strings.ToLower(target), t.filter) {
+		if !strings.Contains(strings.ToLower(host.Name), t.filter) && !strings.Contains(strings.Join(host.Aliases, " - "), t.filter) && !strings.Contains(strings.ToLower(target), t.filter) {
 			continue
 		}
 
-		values := []string{host.Name, host.User, target, host.Port}
+		values := []string{host.Name, strings.Join(host.Aliases, ", "), host.User, target, host.Port}
+
+		if t.displayFullProxy {
+			values = append(values, host.ProxyCommand)
+		}
+
 		row := t.GetRowCount()
 
 		isPreviouslySelected := true
