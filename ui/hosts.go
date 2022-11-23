@@ -76,8 +76,16 @@ func asSha256(o interface{}) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, sortFlag bool, displayFullProxy bool) *HostsTable {
-	hosts, e := sshconfig.ParseSSHConfig(sshConfigPath)
+type HostsTableOptions struct {
+	SSHConfigPath          string
+	Filter                 string
+	ShouldSortByName       bool
+	ShouldDisplayFullProxy bool
+	ShouldExitAfterSession bool
+}
+
+func NewHostsTable(app *tview.Application, options HostsTableOptions) *HostsTable {
+	hosts, e := sshconfig.ParseSSHConfig(options.SSHConfigPath)
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -85,8 +93,8 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 	table := &HostsTable{
 		Table:            tview.NewTable(),
 		Hosts:            make([]Host, 0),
-		filter:           strings.ToLower(filter),
-		displayFullProxy: displayFullProxy,
+		filter:           strings.ToLower(options.Filter),
+		displayFullProxy: options.ShouldDisplayFullProxy,
 	}
 
 	table.
@@ -95,6 +103,7 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 		Select(0, 0).
 		SetFixed(1, 1).
 		SetSeparator('│').
+		SetWrapSelection(true, false).
 		SetBorder(true)
 
 	table.SetBackgroundColor(tcell.ColorReset)
@@ -115,7 +124,12 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 			if len(hostname) > 0 {
 				app.Suspend(func() {
 					isSuspended = true
-					connect(hostname, sshConfigPath)
+
+					if options.ShouldExitAfterSession {
+						app.Stop()
+					}
+
+					connect(hostname, options.SSHConfigPath)
 				})
 			}
 		}
@@ -189,7 +203,7 @@ func NewHostsTable(app *tview.Application, sshConfigPath string, filter string, 
 		}
 	}
 
-	if sortFlag {
+	if options.ShouldSortByName {
 		sort.Slice(table.Hosts, func(i, j int) bool {
 			return strings.ToLower(table.Hosts[i].Name) < strings.ToLower(table.Hosts[j].Name)
 		})
@@ -269,8 +283,7 @@ func (t *HostsTable) Generate() *HostsTable {
 		isPreviouslySelected := true
 
 		for col, value := range values {
-			cell := tview.NewTableCell(padding(value)).
-				SetTextColor(tcell.ColorWhite)
+			cell := tview.NewTableCell(padding(value))
 
 			t.SetCell(row, col, cell)
 
