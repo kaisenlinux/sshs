@@ -1,0 +1,13 @@
+Author: Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>
+
+--- sshs-3.4.0.orig/Makefile
++++ sshs-3.4.0/Makefile
+@@ -14,7 +14,7 @@ build:
+ clean:
+ 	rm -f sshs
+ 
+-PREFIX ?= /usr/local
++PREFIX ?= /usr
+ 
+ install: sshs
+ 	mkdir -p $(DESTDIR)$(PREFIX)/bin
