@@ -1,20 +1,13 @@
 #!/usr/bin/make -f
 
-export GOPATH=$(CURDIR)/obj-x86_64-linux-gnu
-
 %:
-	dh $@ --buildsystem=golang
+	dh $@
 
 override_dh_auto_clean:
 	rm -f $(CURDIR)/sshs
-	rm -rf $(CURDIR)/obj-x86_64-linux-gnu
-	rm -rf $(CURDIR)/debian/sshs
 
 override_dh_auto_build:
-	make build
-
-override_dh_auto_test:
-	go test
+	cargo build --release --bin sshs
 
 override_dh_auto_install:
-	dh_auto_install -- --no-source
+	install -p -m 0755 $(CURDIR)/target/release/sshs $(CURDIR)/debian/sshs/usr/bin/

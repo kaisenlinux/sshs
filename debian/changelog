@@ -1,3 +1,9 @@
+sshs (4.3.0-1kaisen) kaisen-packages; urgency=medium
+
+  * Import the 4.3.0 release
+
+ -- Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>  Wed, 08 May 2024 18:47:04 +0200
+
 sshs (3.4.0-2kaisen) kaisen-packages; urgency=medium
 
   * Remove golang-go as package dependancy
