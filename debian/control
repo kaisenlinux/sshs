@@ -4,8 +4,8 @@ Priority: optional
 Maintainer: Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>
 Build-Depends:
  debhelper-compat (= 13),
- rust-all (>= 1.70),
-Standards-Version: 4.7.0
+ rust-all (>= 1.79),
+Standards-Version: 4.7.2
 Homepage: https://github.com/quantumsheep/sshs
 Vcs-Browser: https://gitlab.com/kaisenlinux/packages/sshs
 Vcs-Git: https://gitlab.com/kaisenlinux/packages/sshs.git
