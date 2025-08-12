@@ -34,22 +34,16 @@ choco install sshs
 
 ### Arch Linux
 
-#### Pacman
-
-[Vote for the package to be added to the official repository](https://aur.archlinux.org/packages/sshs).  
-In the meantime you can manually install it by cloning the repository and running `makepkg`:
-
 ```shell
-pacman -S --needed git base-devel
-git clone https://aur.archlinux.org/sshs.git
-cd sshs
-makepkg -si
+pacman -S sshs
 ```
 
-#### Yay
+### Alpine Linux
+
+`sshs` is available in Alpine Linux [testing repository](https://pkgs.alpinelinux.org/package/edge/testing/x86_64/sshs).
 
 ```shell
-yay -Syua --needed --noconfirm sshs
+apk add sshs
 ```
 
 ### NixOS / Nix

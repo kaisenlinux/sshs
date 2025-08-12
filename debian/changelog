@@ -1,3 +1,10 @@
+sshs (4.7.2-1kaisen) kaisen-packages; urgency=medium
+
+  * Import the 4.7.2 release
+  * Bump the rust version required to build
+
+ -- Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>  Sat, 09 Aug 2025 21:06:05 +0200
+
 sshs (4.5.1-1kaisen) kaisen-packages; urgency=medium
 
   * Import the 4.5.1 release
